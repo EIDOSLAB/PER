@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Look But Don't Touch: SAEs for Unlearning in Diffusion Models</title>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --accent: #e07b39;
+      --accent-dark: #c5652a;
+      --accent-deep: #9e4e1f;
+      --accent-light: #fdf3ec;
+      --text: #373737;
+      --muted: #55514a;
+      --bg: #e8e3d6;
+      --surface: #f4f0e6;
+      --border: #d4cdc0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Source Sans Pro', Helvetica Neue, Arial, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.65;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: linear-gradient(135deg, #2a2a2a 0%, #373737 100%);
+      color: #fff;
+      padding: 56px 24px 48px;
+      text-align: center;
+    }
+    header .badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 20px;
+      padding: 4px 16px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 22px;
+    }
+    header h1 {
+      font-size: clamp(1.6rem, 3.5vw, 2.6rem);
+      font-weight: 700;
+      max-width: 860px;
+      margin: 0 auto 20px;
+      line-height: 1.3;
+    }
+    .authors {
+      font-size: 1.05rem;
+      margin-bottom: 8px;
+      opacity: 0.95;
+    }
+    .authors a { color: #e8e3d6; text-decoration: none; }
+    .authors a:hover { text-decoration: underline; }
+    .authors sup { color: #fff; }
+    .affiliation-list {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      margin-bottom: 28px;
+      font-size: 0.92rem;
+      opacity: 0.82;
+    }
+    .affiliation-list span { white-space: nowrap; }
+    .affiliation-list .tag {
+      display: inline-block;
+      min-width: 1.35rem;
+      text-align: center;
+      padding: 0 0.35rem;
+      margin-right: 0.35rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.22);
+      font-size: 0.78rem;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+    .corresponding {
+      font-size: 0.92rem;
+      opacity: 0.82;
+      margin-bottom: 28px;
+    }
+    .corresponding a { color: #fff; text-decoration: none; }
+    .corresponding a:hover { text-decoration: underline; }
+    .header-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(255,255,255,0.15);
+      border: 1.5px solid rgba(255,255,255,0.5);
+      color: #fff;
+      border-radius: 8px;
+      padding: 9px 20px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: rgba(255,255,255,0.28); }
+    .btn svg { width: 18px; height: 18px; fill: currentColor; }
+
+    /* ── MAIN LAYOUT ── */
+    main { max-width: 960px; margin: 0 auto; padding: 0 24px 80px; }
+
+    section { margin-top: 56px; }
+    section h2 {
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: var(--accent);
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 8px;
+      margin-bottom: 20px;
+    }
+    section h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 24px 0 8px;
+    }
+    p { margin-bottom: 14px; color: var(--muted); }
+
+    /* ── ABSTRACT BOX ── */
+    .abstract-box {
+      background: var(--accent-light);
+      border-left: 4px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 20px 24px;
+      color: var(--text);
+      font-size: 1.0rem;
+    }
+
+    /* ── KEY PROPERTIES ── */
+    .key-props {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 14px;
+      margin-top: 20px;
+    }
+    .key-props li {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 0.92rem;
+      color: var(--text);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .key-props li::before {
+      content: "✓";
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 1rem;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ── IMAGES ── */
+    .figure {
+      text-align: center;
+      margin: 28px 0;
+    }
+    .figure img {
+      max-width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .figure figcaption {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    /* ── RESULTS TABLE ── */
+    .table-wrapper {
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+      margin-bottom: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      min-width: 580px;
+    }
+    thead tr { background: var(--accent); color: #fff; }
+    thead th {
+      padding: 10px 12px;
+      font-weight: 600;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    tbody tr:nth-child(odd)  { background: #fbf9f3; }
+    tbody tr:nth-child(even) { background: #f7f3e8; }
+    tbody tr.ours { background: #fdecd8 !important; font-weight: 700; }
+    tbody tr:hover { background: #f5d9c0 !important; }
+    tbody td {
+      padding: 9px 12px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+    tbody td:first-child { text-align: left; font-weight: 500; padding-left: 14px; }
+    tbody td:nth-child(2) { font-style: italic; }
+    .best  { font-weight: 800; color: #8f3f10; }
+    .second { text-decoration: underline; }
+    .table-caption {
+      font-size: 0.88rem;
+      color: var(--muted);
+      margin-top: 10px;
+      text-align: center;
+    }
+    .pipeline-divider td {
+      background: #ede8da !important;
+      font-size: 0.78rem;
+      font-weight: 600 !important;
+      color: var(--muted);
+      padding: 5px 14px !important;
+      text-align: left !important;
+      font-style: normal !important;
+      border-top: 2px solid var(--border) !important;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    /* ── INSIGHT BOX ── */
+    .insight-box {
+      display: flex;
+      gap: 14px;
+      background: #fff8f4;
+      border: 1px solid #f0c9a8;
+      border-radius: 10px;
+      padding: 18px 20px;
+      margin: 20px 0;
+      align-items: flex-start;
+    }
+    .insight-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .insight-box p {
+      margin: 0;
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+
+    /* ── CODE BLOCKS ── */
+    pre {
+      background: #1e2433;
+      color: #cdd6f4;
+      border-radius: 10px;
+      padding: 18px 20px;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      margin: 12px 0 20px;
+      position: relative;
+    }
+    code { font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace; }
+    .copy-btn {
+      position: absolute;
+      top: 10px; right: 12px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #cdd6f4;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .copy-btn:hover { background: rgba(255,255,255,0.22); }
+
+    /* ── FOOTER ── */
+    footer {
+      margin-top: 80px;
+      border-top: 1px solid var(--border);
+      padding: 28px 24px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════ HEADER -->
+<header>
+  <div class="badge">ECCV 2026</div>
+  <h1>Look But Don't Touch with Sparse Autoencoders<br>for Unlearning in Diffusion Models</h1>
+
+  <p class="authors">
+    <a href="https://scholar.google.com/citations?user=GmFkC7cAAAAJ&hl=it&authuser=1" target="_blank">Enrico Cassano</a><sup>1</sup>&nbsp;&nbsp;
+    <a href="https://scholar.google.com/citations?user=JlAby_oAAAAJ&hl=it&authuser=1" target="_blank">Riccardo Renzulli</a><sup>1</sup>&nbsp;&nbsp;
+    Ryyan Ahmed<sup>2</sup>&nbsp;&nbsp;
+    Stephan Alaniz<sup>2</sup>&nbsp;&nbsp;
+    <a href="https://scholar.google.com/citations?user=Pt1gmQYAAAAJ&hl=it&authuser=1" target="_blank">Marco Grangetto</a><sup>1</sup>
+  </p>
+
+  <div class="affiliation-list">
+    <span><span class="tag">1</span>University of Turin, Italy</span>
+    <span><span class="tag">2</span>Telecom Paris, France</span>
+  </div>
+
+  <div class="corresponding">
+    Contact: <a href="mailto:enrico.cassano@unito.it">enrico.cassano@unito.it</a>
+  </div>
+
+  <div class="header-links">
+    <a class="btn" href="#" target="_blank">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm1 7V3.5L18.5 9H15zm-1 2h3v2h-3v2h3v2h-3v2H8v-2h3v-2H8v-2h3v-2H8V9h6v2z"/></svg>
+      Paper (coming soon)
+    </a>
+    <a class="btn" href="#" target="_blank">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.419 2.865 8.166 6.839 9.489.5.09.682-.218.682-.484 0-.236-.009-.866-.013-1.699-2.782.602-3.369-1.34-3.369-1.34-.455-1.157-1.11-1.465-1.11-1.465-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.891 1.529 2.341 1.089 2.91.833.091-.647.349-1.086.635-1.337-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.269 2.75 1.025A9.56 9.56 0 0 1 12 6.836a9.59 9.59 0 0 1 2.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.378.203 2.394.1 2.647.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.942.359.307.678.917.678 1.852 0 1.335-.012 2.415-.012 2.741 0 .269.18.579.688.481C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg>
+      Code (coming soon)
+    </a>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════ MAIN -->
+<main>
+
+  <!-- ABSTRACT -->
+  <section id="abstract">
+    <h2>Abstract</h2>
+    <div class="abstract-box">
+      Sparse autoencoders (SAEs) have recently been proposed as interpretable tools for concept-level manipulation, under the assumption that isolated features can serve as controllable intervention points. In this work, we systematically evaluate this assumption in the context of object erasure and steering in diffusion models. We show that while SAEs reliably <b>detect and localize</b> semantic concepts within diffusion model activations, direct intervention in their latent space frequently induces <b>out-of-distribution activations</b>, resulting in severe visual artifacts. To disentangle detection from intervention, we use SAE activations purely as semantic detectors to identify image regions containing the target object, and replace those patch embeddings with the ones that do not contain it. This <b>detection-based replacement</b> preserves the diffusion model's activation statistics and produces significantly cleaner erasure results than latent steering. Our findings reveal a fundamental gap between concept detection and concept intervention in diffusion models: monosemantic or sparse features are not inherently suitable as control knobs for steering.
+    </div>
+
+    <ul class="key-props">
+      <li>SAE latents reliably detect concepts but steering with them causes OOD activations and visual artifacts</li>
+      <li>Patch Embedding Replacement (PER) uses SAEs for detection only — no latent manipulation</li>
+      <li>No intervention strength tuning required, eliminating costly grid search</li>
+      <li>Plug-and-play improvement on top of SAeUron, SAEmnesia, G-SAE, and SDXL SAE</li>
+    </ul>
+  </section>
+
+  <!-- OVERVIEW IMAGES -->
+  <section id="method">
+    <h2>Method</h2>
+
+    <div class="insight-box">
+      <div class="insight-icon">&#128064;</div>
+      <p><strong>Core insight:</strong> SAEs excel at <em>detecting</em> where a concept lives in a feature map, but steering with negative multipliers pushes activations outside the diffusion model's training distribution — causing severe artifacts. Our method, <strong>Patch Embedding Replacement (PER)</strong>, separates detection from intervention: look with the SAE, don't touch the latent space.</p>
+    </div>
+
+    <figure class="figure">
+      <img src="pipeline_PER.png" alt="PER Pipeline Overview"/>
+      <figcaption>Figure 1 — Overview of the proposed pipeline. (1) SAEs are trained on DM activations using prompts containing the concepts to be removed. (2) A score-based analysis identifies the SAE latents associated with each concept, forming a concept–latent dictionary. (3) At inference, these latents detect concept-containing patches and produce a spatial detection mask. (4) Instead of steering, detected patch embeddings are replaced with in-distribution embeddings sampled from non-detected locations in the same feature map.</figcaption>
+    </figure>
+
+    <h3>Why Steering Fails: OOD Activations</h3>
+    <p>Multiplier-based interventions push activations well outside the diffusion model's training distribution. The plots below show per-dimension activation distributions (top) and L2 norm distributions (bottom) for all four SAE pipelines. Even at the median intervention strength, a large fraction of activations fall outside the original distribution — causing the visual artifacts seen in the qualitative figures.</p>
+    <figure class="figure">
+      <img src="ood.png" alt="OOD Activation Analysis"/>
+      <figcaption>Figure 2 — Activation distributions (top) and log₂ L2 norms (bottom) with and without multiplier-based steering across all pipelines. Steered activations deviate significantly from the baseline distribution, especially for SDXL where almost all norms shift out of range.</figcaption>
+    </figure>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="results">
+    <h2>Results</h2>
+
+    <figure class="figure">
+      <img src="teaser.png" alt="PER vs Steering Qualitative Comparison"/>
+      <figcaption>Figure 3 — Effect of SAE-based activation steering under varying intervention strengths vs. Patch Embeddings Replacement (PER) when unlearning "Horses". Both SAeUron and SAEmnesia exhibit severe visual artifacts at large negative multipliers, while weaker interventions fail to fully erase the concept. PER (leftmost column) removes the concept while maintaining visual coherence.</figcaption>
+    </figure>
+
+    <figure class="figure">
+      <img src="other_qualitative_PER.png" alt="Qualitative Results Across Concepts"/>
+      <figcaption>Figure 4 — Qualitative results across multiple object concepts (Architectures, Cats, Trees, Sandwiches) and styles. PER consistently produces cleaner outputs than baseline steering for all SAE pipelines, and approaches the generation quality of the unmodified model (No SAE).</figcaption>
+    </figure>
+
+    <p>We evaluate <strong>PER</strong> on top of four existing SAE-based unlearning pipelines on the <strong>UnlearnCanvas</strong> object unlearning benchmark. PER consistently reduces the artifact rate (AR) and improves generalization accuracy (GA) across all pipelines without requiring any tuning of intervention strength.</p>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Pipeline</th>
+            <th>Method</th>
+            <th>UA ↑</th>
+            <th>IRA ↑</th>
+            <th>CRA ↑</th>
+            <th>Avg. ↑</th>
+            <th>AR ↓</th>
+            <th>GA ↑</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="pipeline-divider"><td colspan="8">SAeUron &nbsp;(SD v1.5)</td></tr>
+          <tr>
+            <td>SAeUron</td>
+            <td>Baseline</td>
+            <td>87.16</td>
+            <td>85.57</td>
+            <td>74.14</td>
+            <td>82.29</td>
+            <td>57.0</td>
+            <td>72.47</td>
+          </tr>
+          <tr class="ours">
+            <td>SAeUron</td>
+            <td>+ PER (ours)</td>
+            <td>85.37</td>
+            <td>81.14</td>
+            <td class="best">86.55</td>
+            <td>84.35</td>
+            <td class="best">16.3</td>
+            <td class="best">84.19</td>
+          </tr>
+          <tr class="pipeline-divider"><td colspan="8">SAEmnesia &nbsp;(SD v1.5)</td></tr>
+          <tr>
+            <td>SAEmnesia</td>
+            <td>Baseline</td>
+            <td class="best">94.65</td>
+            <td>91.39</td>
+            <td>88.48</td>
+            <td>91.51</td>
+            <td>49.8</td>
+            <td>81.18</td>
+          </tr>
+          <tr class="ours">
+            <td>SAEmnesia</td>
+            <td>+ PER (ours)</td>
+            <td>91.37</td>
+            <td class="best">91.92</td>
+            <td class="best">97.97</td>
+            <td class="best">93.45</td>
+            <td class="best">15.5</td>
+            <td class="best">91.44</td>
+          </tr>
+          <tr class="pipeline-divider"><td colspan="8">G-SAE &nbsp;(SD v1.5)</td></tr>
+          <tr>
+            <td>G-SAE</td>
+            <td>Baseline</td>
+            <td>78.14</td>
+            <td class="best">96.14</td>
+            <td class="best">95.56</td>
+            <td>89.94</td>
+            <td>43.1</td>
+            <td>81.69</td>
+          </tr>
+          <tr class="ours">
+            <td>G-SAE</td>
+            <td>+ PER (ours)</td>
+            <td class="best">94.02</td>
+            <td>96.11</td>
+            <td>95.87</td>
+            <td class="best">95.33</td>
+            <td class="best">22.5</td>
+            <td class="best">90.88</td>
+          </tr>
+          <tr class="pipeline-divider"><td colspan="8">SAE on SDXL Turbo</td></tr>
+          <tr>
+            <td>SDXL SAE</td>
+            <td>Baseline</td>
+            <td class="best">95.00</td>
+            <td>5.00</td>
+            <td>—</td>
+            <td>50.0</td>
+            <td>61.0</td>
+            <td>46.33</td>
+          </tr>
+          <tr class="ours">
+            <td>SDXL SAE</td>
+            <td>+ PER (ours)</td>
+            <td>94.31</td>
+            <td class="best">35.41</td>
+            <td>—</td>
+            <td class="best">73.86</td>
+            <td class="best">8.0</td>
+            <td class="best">79.90</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="table-caption">Table 1 — UA: Unlearning Accuracy. IRA: In-Domain Retain Accuracy. CRA: Cross-Domain Retain Accuracy. AR: Artifact Rate (Qwen2-VL-7B; ↓ = fewer artifacts). GA: Generalization Accuracy. Best result per pipeline in <strong>bold</strong>.</p>
+
+    <h3>Adversarial Robustness</h3>
+    <p>Evaluated with UnlearnDiffAtk (5-token adversarial prefixes, 40 iterations). PER applied to the SAEmnesia pipeline achieves the lowest attack effectiveness, improving robustness while preserving unlearning performance.</p>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Pipeline</th>
+            <th>Method</th>
+            <th>UA before attack ↑</th>
+            <th>UA after attack ↑</th>
+            <th>Attack Effectiveness ↓</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>SAeUron</td>
+            <td>Baseline</td>
+            <td>83.70</td>
+            <td>34.20</td>
+            <td>49.50</td>
+          </tr>
+          <tr class="ours">
+            <td>SAeUron</td>
+            <td>+ PER (ours)</td>
+            <td>84.60</td>
+            <td>28.30</td>
+            <td>56.30</td>
+          </tr>
+          <tr>
+            <td>SAEmnesia</td>
+            <td>Baseline</td>
+            <td class="best">97.60</td>
+            <td class="best">57.50</td>
+            <td>40.10</td>
+          </tr>
+          <tr class="ours">
+            <td>SAEmnesia</td>
+            <td>+ PER (ours)</td>
+            <td>91.10</td>
+            <td>56.20</td>
+            <td class="best">34.90</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="table-caption">Table 2 — Adversarial robustness on UnlearnDiffAtk. Lower attack effectiveness means the unlearning holds up better under adversarial pressure.</p>
+  </section>
+
+  <!-- ACKNOWLEDGEMENTS -->
+  <section id="acknowledgements">
+    <h2>Acknowledgements</h2>
+    <p>We acknowledge the CINECA award under the ISCRA initiative for the availability of high performance computing resources and support.</p>
+    <p>This work builds upon <a href="https://github.com/cywinski/SAeUron" target="_blank">SAeUron</a> by Cywiński et al. and <a href="https://github.com/EIDOSLAB/SAEmnesia" target="_blank">SAEmnesia</a> by Cassano et al. We thank the authors for releasing their code and pre-trained models.</p>
+  </section>
+
+  <!-- CITATION -->
+  <section id="citation">
+    <h2>Citation</h2>
+    <p>If you find this work useful in your research, please cite:</p>
+    <div class="bibtex-box">
+      <pre><code id="bibtex">@inproceedings{cassano2026lookbutdonttouch,
+  title     = {Look But Don't Touch with Sparse Autoencoders for Unlearning in Diffusion Models},
+  author    = {Enrico Cassano and Riccardo Renzulli and Ryyan Ahmed and Stephan Alaniz and Marco Grangetto},
+  booktitle = {European Conference on Computer Vision (ECCV)},
+  year      = {2026},
+}</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
+    </div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  Website template inspired by <a href="https://gaussians-on-demand.github.io/" target="_blank">Gaussians on Demand</a>.
+  &nbsp;·&nbsp; Published at ECCV 2026.
+</footer>
+
+<script>
+function copyCode(btn) {
+  const pre = btn.closest('pre');
+  const code = pre.querySelector('code');
+  navigator.clipboard.writeText(code.innerText).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = orig, 2000);
+  });
+}
+</script>
+
+</body>
+</html>
