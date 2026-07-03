@@ -305,13 +305,13 @@
     <a href="https://scholar.google.com/citations?user=GmFkC7cAAAAJ&hl=it&authuser=1" target="_blank">Enrico Cassano</a><sup>1</sup>&nbsp;&nbsp;
     <a href="https://scholar.google.com/citations?user=JlAby_oAAAAJ&hl=it&authuser=1" target="_blank">Riccardo Renzulli</a><sup>1</sup>&nbsp;&nbsp;
     Ryyan Ahmed<sup>2</sup>&nbsp;&nbsp;
-    Stephan Alaniz<sup>2</sup>&nbsp;&nbsp;
-    <a href="https://scholar.google.com/citations?user=Pt1gmQYAAAAJ&hl=it&authuser=1" target="_blank">Marco Grangetto</a><sup>1</sup>
+    <a href="https://scholar.google.com/citations?user=Pt1gmQYAAAAJ&hl=it&authuser=1" target="_blank">Marco Grangetto</a><sup>1</sup>&nbsp;&nbsp;
+    <a href="https://scholar.google.com/citations?user=mzZa_yQAAAAJ&hl=en&oi=ao" target="_blank">Stephan Alaniz</a><sup>2</sup>
   </p>
 
   <div class="affiliation-list">
     <span><span class="tag">1</span>University of Turin, Italy</span>
-    <span><span class="tag">2</span>Telecom Paris, France</span>
+    <span><span class="tag">2</span>Telecom Paris, Institut Polytechnique de Paris, France</span>
   </div>
 
   <div class="corresponding">
@@ -337,7 +337,7 @@
   <section id="abstract">
     <h2>Abstract</h2>
     <div class="abstract-box">
-      Sparse autoencoders (SAEs) have recently been proposed as interpretable tools for concept-level manipulation, under the assumption that isolated features can serve as controllable intervention points. In this work, we systematically evaluate this assumption in the context of object erasure and steering in diffusion models. We show that while SAEs reliably <b>detect and localize</b> semantic concepts within diffusion model activations, direct intervention in their latent space frequently induces <b>out-of-distribution activations</b>, resulting in severe visual artifacts. To disentangle detection from intervention, we use SAE activations purely as semantic detectors to identify image regions containing the target object, and replace those patch embeddings with the ones that do not contain it. This <b>detection-based replacement</b> preserves the diffusion model's activation statistics and produces significantly cleaner erasure results than latent steering. Our findings reveal a fundamental gap between concept detection and concept intervention in diffusion models: monosemantic or sparse features are not inherently suitable as control knobs for steering.
+      Sparse autoencoders (SAEs) have recently been proposed as interpretable tools for concept-level manipulation, under the assumption that isolated features can serve as controllable intervention points. In this work, we systematically evaluate this assumption in the context of object erasure and steering in diffusion models. We show that while SAEs reliably <b>detect and localize</b> semantic concepts within diffusion model activations, direct intervention in their latent space frequently induces <b>out-of-distribution activations</b>, resulting in severe visual artifacts. To disentangle detection from intervention, we use SAE activations purely as semantic detectors to identify image regions containing the target object, and replace those patch embeddings with the ones that do not contain it. This <b>detection-based replacement</b> preserves the diffusion model's activation statistics and produces significantly cleaner erasure results than latent steering. Our findings reveal a fundamental gap between concept detection and concept intervention in diffusion models: monosemantic or sparse features are not inherently suitable as control knobs for steering. These results position SAEs as powerful interpretability tools for analyzing generative models, but highlight important limitations when used for direct manipulation, such as unlearning.
     </div>
 
     <ul class="key-props">
@@ -553,7 +553,7 @@
     <div class="bibtex-box">
       <pre><code id="bibtex">@inproceedings{cassano2026lookbutdonttouch,
   title     = {Look But Don't Touch with Sparse Autoencoders for Unlearning in Diffusion Models},
-  author    = {Enrico Cassano and Riccardo Renzulli and Ryyan Ahmed and Stephan Alaniz and Marco Grangetto},
+  author    = {Enrico Cassano and Riccardo Renzulli and Ryyan Ahmed and Marco Grangetto and Stephan Alaniz},
   booktitle = {European Conference on Computer Vision (ECCV)},
   year      = {2026},
 }</code><button class="copy-btn" onclick="copyCode(this)">Copy</button></pre>
