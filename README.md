@@ -1,8 +1,6 @@
 <div align="center">
 
-<h1>PER — Patch Embedding Replacement</h1>
-
-<p><strong>Look But Don't Touch with Sparse Autoencoders for Unlearning in Diffusion Models</strong></p>
+<h1>Look But Don't Touch with Sparse Autoencoders for Unlearning in Diffusion Models</h1>
 
 <p>
   <a href="https://eidoslab.github.io/PER">Project Page</a> •
@@ -198,11 +196,16 @@ Classifies every generated image with the UnlearnCanvas ViT classifiers and prin
 ## Citation
 
 ```bibtex
-@article{cassano2026look,
-  title={Look But Don't Touch with Sparse Autoencoders for Unlearning in Diffusion Models},
-  author={Cassano, Enrico and Renzulli, Riccardo and Ahmed, Rayyan and Grangetto, Marco and Alaniz, Stephan},
-  journal={arXiv preprint arXiv:2606.31699},
-  year={2026}
+@InProceedings{cassano2026look,
+author="Cassano, Enrico and Renzulli, Riccardo and Ahmed, Rayyan and Grangetto, Marco and Alaniz, Stephan",
+editor="Favaro, Paolo and Kukelova, Zuzana and Maki, Atsuto and Rohrbach, Anna and Schindler, Konrad and Tombari, Federico",
+title="Look But Don't Touch with Sparse Autoencoders for Unlearning in Diffusion Models",
+booktitle="Computer Vision -- ECCV 2026",
+year="2026",
+publisher="Springer Nature Switzerland",
+address="Cham",
+pages="586--603",
+isbn="978-3-032-37335-9"
 }
 ```
 
